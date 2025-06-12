@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Creative Content AI Assistant</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts - Inter for main text, Poppins for headings -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* Custom CSS for themes and specific elements */
+        :root {
+            --bg-color-body: #f8fafc;
+            --bg-card: #ffffff;
+            --text-color-primary: #1a202c;
+            --text-color-secondary: #4a5568;
+            --border-color: #e2e8f0;
+            --accent-color-light: #6366f1; /* Indigo 500 */
+            --accent-color-dark: #4f46e5;  /* Indigo 600 */
+            --button-bg-from: #3b82f6; /* Blue 500 */
+            --button-bg-to: #7e22ce;   /* Purple 800 */
+            --button-hover-bg-from: #2563eb; /* Blue 600 */
+            --button-hover-bg-to: #6b21a8; /* Purple 900 */
+        }
+
+        html[data-theme="dark"] {
+            --bg-color-body: #0f172a;
+            --bg-card: #1e293b;
+            --text-color-primary: #f8fafc;
+            --text-color-secondary: #cbd5e0;
+            --border-color: #475569;
+            --accent-color-light: #8b5cf6; /* Violet 500 */
+            --accent-color-dark: #7c3aed;  /* Violet 600 */
+            --button-bg-from: #6366f1; /* Indigo 500 */
+            --button-bg-to: #8b5cf6;   /* Violet 500 */
+            --button-hover-bg-from: #4f46e5; /* Indigo 600 */
+            --button-hover-bg-to: #7c3aed; /* Violet 600 */
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-color-body);
+            color: var(--text-color-primary);
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+
+        .card {
+            background-color: var(--bg-card);
+            border: 1px solid var(--border-color);
+            transition: background-color 0.3s ease, border-color 0.3s ease;
+        }
+
+        .btn-gradient {
+            background-image: linear-gradient(to right, var(--button-bg-from), var(--button-bg-to));
+            transition: all 0.3s ease;
+        }
+
+        .btn-gradient:hover {
+            background-image: linear-gradient(to right, var(--button-hover-bg-from), var(--button-hover-bg-to));
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+        }
+
+        .loading-spinner {
+            border: 4px solid var(--border-color);
+            border-top: 4px solid var(--accent-color-light);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Message Box Styling */
+        .message-box {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: rgba(255, 0, 0, 0.8);
+            color: white;
+            padding: 15px 25px;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            z-index: 1000;
+            display: none; /* Hidden by default */
+            opacity: 0;
+            transition: opacity 0.5s ease-in-out;
+        }
+        .message-box.show {
+            display: block;
+            opacity: 1;
+        }
+    </style>
+</head>
+<body class="flex flex-col items-center justify-center min-h-screen p-4">
+    <div class="card p-8 rounded-xl shadow-2xl max-w-2xl w-full">
+        <h1 class="text-3xl font-poppins font-bold text-center mb-6">Creative Content AI Assistant</h1>
+
+        <div class="mb-4">
+            <label for="topicInput" class="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
+                Enter your topic or main idea:
+            </label>
+            <input type="text" id="topicInput" placeholder="e.g., Sustainable living, Sci-fi movie review, DIY crafts"
+                   class="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+        </div>
+
+        <div class="mb-6">
+            <label for="contentType" class="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
+                Select content type:
+            </label>
+            <select id="contentType"
+                    class="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                <option value="idea">Content Idea</option>
+                <option value="video-title">Video Title</option>
+                <option value="social-media">Social Media Post</option>
+            </select>
+        </div>
+
+        <button id="generateBtn"
+                class="w-full py-3 px-6 rounded-lg text-white font-semibold btn-gradient shadow-lg">
+            Generate Content
+        </button>
+
+        <div id="loadingIndicator" class="flex justify-center items-center mt-6 hidden">
+            <div class="loading-spinner"></div>
+            <p class="ml-3 text-gray-600 dark:text-gray-400">Generating content...</p>
+        </div>
+
+        <div id="outputArea" class="mt-8 p-6 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg whitespace-pre-wrap break-words hidden">
+            <h3 class="text-lg font-semibold mb-3 text-gray-800 dark:text-gray-200">Generated Content:</h3>
+            <p id="generatedContent" class="text-gray-700 dark:text-gray-300"></p>
+        </div>
+    </div>
+
+    <!-- Message Box for alerts -->
+    <div id="messageBox" class="message-box"></div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const topicInput = document.getElementById('topicInput');
+            const contentTypeSelect = document.getElementById('contentType');
+            const generateBtn = document.getElementById('generateBtn');
+            const loadingIndicator = document.getElementById('loadingIndicator');
+            const outputArea = document.getElementById('outputArea');
+            const generatedContent = document.getElementById('generatedContent');
+            const messageBox = document.getElementById('messageBox');
+
+            // Function to display messages (replaces alert())
+            const showMessage = (message, isError = true) => {
+                messageBox.textContent = message;
+                messageBox.style.backgroundColor = isError ? 'rgba(255, 0, 0, 0.8)' : 'rgba(0, 128, 0, 0.8)';
+                messageBox.classList.add('show');
+                setTimeout(() => {
+                    messageBox.classList.remove('show');
+                }, 3000); // Hide after 3 seconds
+            };
+
+            // Function to set theme
+            const setTheme = (theme) => {
+                document.documentElement.setAttribute('data-theme', theme);
+            };
+
+            // Initialize theme (default to light if no preference)
+            const prefersDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches;
+            setTheme(prefersDarkMode ? 'dark' : 'light');
+
+            generateBtn.addEventListener('click', async () => {
+                const topic = topicInput.value.trim();
+                const type = contentTypeSelect.value;
+
+                if (!topic) {
+                    showMessage('Please enter a topic or idea before generating content.');
+                    return;
+                }
+
+                // Show loading indicator
+                loadingIndicator.classList.remove('hidden');
+                outputArea.classList.add('hidden'); // Hide previous output
+                generatedContent.textContent = ''; // Clear previous content
+
+                let prompt = '';
+                switch (type) {
+                    case 'idea':
+                        prompt = `Generate a creative content idea for digital media, focusing on the topic: "${topic}". Provide a brief concept and a catchy title.`;
+                        break;
+                    case 'video-title':
+                        prompt = `Suggest 5 engaging and SEO-friendly video titles for a video about: "${topic}".`;
+                        break;
+                    case 'social-media':
+                        prompt = `Draft a compelling social media post (e.g., for Instagram or Twitter) about: "${topic}". Include relevant hashtags and an emoji.`;
+                        break;
+                    default:
+                        showMessage('Invalid content type selected.', true);
+                        loadingIndicator.classList.add('hidden');
+                        return;
+                }
+
+                try {
+                    let chatHistory = [];
+                    chatHistory.push({ role: "user", parts: [{ text: prompt }] });
+                    const payload = { contents: chatHistory };
+                    const apiKey = ""; // Leave as-is, Canvas will provide key at runtime
+                    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+
+                    const response = await fetch(apiUrl, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+
+                    if (!response.ok) {
+                        const errorData = await response.json();
+                        console.error('API Error:', errorData);
+                        showMessage(`API call failed: ${errorData.error?.message || response.statusText}`, true);
+                        return;
+                    }
+
+                    const result = await response.json();
+
+                    if (result.candidates && result.candidates.length > 0 &&
+                        result.candidates[0].content && result.candidates[0].content.parts &&
+                        result.candidates[0].content.parts.length > 0) {
+                        const text = result.candidates[0].content.parts[0].text;
+                        generatedContent.textContent = text;
+                        outputArea.classList.remove('hidden');
+                    } else {
+                        showMessage('No content generated. Please try a different prompt.', false);
+                    }
+                } catch (error) {
+                    console.error('Error generating content:', error);
+                    showMessage(`An error occurred: ${error.message}`, true);
+                } finally {
+                    loadingIndicator.classList.add('hidden'); // Hide loading indicator
+                }
+            });
+        });
+    </script>
+</body>
+</html>
